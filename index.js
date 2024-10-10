@@ -17,14 +17,17 @@ const wordList = [
 ];
 // -----------------
 
-function extractAndSaveData(message) {
-  const characterMatch = message.match(/Character · (.+)/);
-  const seriesMatch = message.match(/Series · (.+)/);
-  const wishlistedMatch = message.match(/Wishlisted · (\d+)/);
-  const editionMatch = message.match(/Showing edition (\d+)/);
+function extractAndSaveData(msg) {
+  const description = msg.embeds[0].description;
+  const footer = msg.embeds[0].footer.text;
 
-  const character = characterMatch ? characterMatch[1].trim() : 'Unknown';
-  const series = seriesMatch ? seriesMatch[1].trim() : 'Unknown';
+  const characterMatch = description.match(/Character · (.+)/);
+  const seriesMatch = description.match(/Series · (.+)/);
+  const wishlistedMatch = description.match(/Wishlisted · (\d+)/);
+  const editionMatch = footer.match(/Showing edition (\d+)/);
+
+  const character = characterMatch ? characterMatch[1].trim().replace(/\*\*/g, '') : 'Unknown';
+  const series = seriesMatch ? seriesMatch[1].trim().replace(/\*\*/g, '') : 'Unknown';
   const wishlisted = wishlistedMatch ? wishlistedMatch[1].trim() : '0';
   const edition = editionMatch ? editionMatch[1].trim() : '0';
 
@@ -36,7 +39,7 @@ function extractAndSaveData(message) {
   const isAnimeOfInterest = wordList.some(word => series.toLowerCase().includes(word));
 
   const formattedString = `♡${wishlisted} · ◈${edition} · ${series} · ${character}\n`;
-  console.log(`Saved ${formattedString}`);
+  console.log(`CARD: ${formattedString}`);
 
   fs.appendFileSync('CARDS.txt', formattedString, 'utf8');
   if (isEditionSeven || isWishlistedHigh || isAnimeOfInterest) {
@@ -153,6 +156,18 @@ async function waitForResponse(channel, timeout = 10000) {
   return fetchedMessages ? fetchedMessages.first() : null;
 }
 
+async function waitForDrop(timeMin) {
+  const time = timeMin * 60 * 1000;
+  const waitTime = getRandomValue(time + 12123, time + 3 * 60 * 1000);
+  
+  const currentTime = new Date();
+  const dropTime = new Date(currentTime.getTime() + waitTime);
+  const formattedDropTime = dropTime.toLocaleTimeString('es-AR');
+  
+  console.log(`Next drop at ${formattedDropTime}. You need to wait for ${Math.ceil(waitTime / (60 * 1000))} minute(s).`);
+  await sleep(waitTime);
+}
+
 async function mainLoop(channel) {
   while (true) {
     if (shouldSendMessage(0.41)) {
@@ -166,11 +181,7 @@ async function mainLoop(channel) {
     if (msg) {
       const waitTimeMatch = msg.content.match(/(\d+) minutes/);
       if (waitTimeMatch) {
-        const waitTime = parseInt(waitTimeMatch[1], 10);
-        const waitTimeMs = waitTime * 60 * 1000;
-        const ARG_time = new Date().toLocaleTimeString('es-AR');
-        console.log(`${ARG_time}: Cooldown ${waitTime} minutes.`);
-        await sleep(getRandomValue(waitTimeMs + 12123, waitTimeMs + 3 * 60 * 1000));
+        await waitForDrop(parseInt(waitTimeMatch[1], 10));
       } else {
         if (msg.attachments.size > 0) {
           await sleep(getRandomValue(1210, 3230));
@@ -180,9 +191,7 @@ async function mainLoop(channel) {
               const anime2 = await analyzeImage(attachment.url, 320, 300, 180, 60);
               const anime3 = await analyzeImage(attachment.url, 600, 300, 180, 60);
 
-              const ARG_time = new Date().toLocaleTimeString('es-AR');
-              const animes = `${anime1} - ${anime2} - ${anime3}`.replace(/\n/g, ' ');
-              console.log(`${ARG_time}: ${animes}`);
+              console.log(`${anime1} - ${anime2} - ${anime3}`.replace(/\n/g, ' '));
 
               var num = checkForAnime(anime1, anime2, anime3);
               if (num != false) {
@@ -195,7 +204,6 @@ async function mainLoop(channel) {
                 const chosenEd = await getHighestOrRandom(ed1, ed2, ed3);
                 reactWithNumberEmoji(msg, chosenEd);
               }
-              break;
             }
           }
         }
@@ -206,9 +214,9 @@ async function mainLoop(channel) {
     
         const luMsg = await waitForResponse(channel);
         if (luMsg) 
-          await extractAndSaveData(luMsg.embeds[0].description);
+          await extractAndSaveData(luMsg);
         
-        await sleep(getRandomValue(MINS30 + 12123, MINS30 + 3 * 60 * 1000));
+        await waitForDrop(30);
       }
     }
   }
