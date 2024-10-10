@@ -1,7 +1,4 @@
 node_modules/
-!config.json
-config.json
-!BESTS.txt
 BESTS.txt
-!CARDS.txt
 CARDS.txt
+config.json
