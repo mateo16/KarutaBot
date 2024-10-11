@@ -23,12 +23,12 @@ function extractAndSaveData(msg) {
 
   const characterMatch = description.match(/Character · (.+)/);
   const seriesMatch = description.match(/Series · (.+)/);
-  const wishlistedMatch = description.match(/Wishlisted · (\d+)/);
+  const wishlistedMatch = description.match(/Wishlisted · (.+)/);
   const editionMatch = footer.match(/Showing edition (\d+)/);
 
   const character = characterMatch ? characterMatch[1].trim().replace(/\*\*/g, '') : 'Unknown';
   const series = seriesMatch ? seriesMatch[1].trim().replace(/\*\*/g, '') : 'Unknown';
-  const wishlisted = wishlistedMatch ? wishlistedMatch[1].trim() : '0';
+  const wishlisted = wishlistedMatch ? wishlistedMatch[1].trim().replace(/\*\*/g, '') : '0';
   const edition = editionMatch ? editionMatch[1].trim() : '0';
 
   const wishlistedNumber = parseInt(wishlisted, 10);
@@ -158,7 +158,7 @@ async function waitForResponse(channel, timeout = 10000) {
 
 async function waitForDrop(timeMin) {
   const time = timeMin * 60 * 1000;
-  const waitTime = getRandomValue(time + 12123, time + 3 * 60 * 1000);
+  const waitTime = await getRandomValue(time + 12123, time + 3 * 60 * 1000);
   
   const currentTime = new Date();
   const dropTime = new Date(currentTime.getTime() + waitTime);
@@ -169,61 +169,61 @@ async function waitForDrop(timeMin) {
 }
 
 async function mainLoop(channel) {
-  while (true) {
-    if (shouldSendMessage(0.41)) {
-      await channel.send('k!cd');
-      await sleep(getRandomValue(612, 3230));
-    }
-
-    await channel.send('k!d');
-    const msg = await waitForResponse(channel);
-
-    if (msg) {
-      const waitTimeMatch = msg.content.match(/(\d+) minutes/);
-      if (waitTimeMatch) {
-        await waitForDrop(parseInt(waitTimeMatch[1], 10));
-      } else {
-        if (msg.attachments.size > 0) {
-          await sleep(getRandomValue(1210, 3230));
-          for (const attachment of msg.attachments.values()) {
-            if (attachment.contentType && attachment.contentType.startsWith('image')) {
-              const anime1 = await analyzeImage(attachment.url, 50, 300, 180, 60);
-              const anime2 = await analyzeImage(attachment.url, 320, 300, 180, 60);
-              const anime3 = await analyzeImage(attachment.url, 600, 300, 180, 60);
-
-              console.log(`${anime1} - ${anime2} - ${anime3}`.replace(/\n/g, ' '));
-
-              var num = checkForAnime(anime1, anime2, anime3);
-              if (num != false) {
-                reactWithNumberEmoji(msg, num);
-              } else {
-                const ed1 = await analyzeImage(attachment.url, 200, 370, 10, 10);
-                const ed2 = await analyzeImage(attachment.url, 475, 370, 10, 10);
-                const ed3 = await analyzeImage(attachment.url, 750, 370, 10, 10);
-
-                const chosenEd = await getHighestOrRandom(ed1, ed2, ed3);
-                reactWithNumberEmoji(msg, chosenEd);
+    while (true) {
+      if (shouldSendMessage(0.41)) {
+        await channel.send('k!cd');
+        await sleep(getRandomValue(612, 3230));
+      }
+  
+      await channel.send('k!d');
+      const msg = await waitForResponse(channel);
+  
+      if (msg) {
+        const waitTimeMatch = msg.content.match(/(\d+) minutes/);
+        if (waitTimeMatch) {
+          await waitForDrop(await parseInt(waitTimeMatch[1], 10));
+        } else {
+          if (msg.attachments.size > 0) {
+            await sleep(getRandomValue(1210, 3230));
+            for (const attachment of msg.attachments.values()) {
+              if (attachment.contentType && attachment.contentType.startsWith('image')) {
+                const anime1 = await analyzeImage(attachment.url, 50, 300, 180, 60);
+                const anime2 = await analyzeImage(attachment.url, 320, 300, 180, 60);
+                const anime3 = await analyzeImage(attachment.url, 600, 300, 180, 60);
+  
+                console.log(`${anime1} - ${anime2} - ${anime3}`.replace(/\n/g, ' '));
+  
+                var num = checkForAnime(anime1, anime2, anime3);
+                if (num != false) {
+                  reactWithNumberEmoji(msg, num);
+                } else {
+                  const ed1 = await analyzeImage(attachment.url, 200, 370, 10, 10);
+                  const ed2 = await analyzeImage(attachment.url, 475, 370, 10, 10);
+                  const ed3 = await analyzeImage(attachment.url, 750, 370, 10, 10);
+  
+                  const chosenEd = await getHighestOrRandom(ed1, ed2, ed3);
+                  reactWithNumberEmoji(msg, chosenEd);
+                }
               }
             }
           }
+  
+          await waitForResponse(channel);
+          await sleep(getRandomValue(2112, 4230));
+          await channel.send('k!lu');
+      
+          const luMsg = await waitForResponse(channel);
+          if (luMsg) 
+            await extractAndSaveData(luMsg);
+          
+          await waitForDrop(30);
         }
-
-        await waitForResponse(channel);
-        await sleep(getRandomValue(2112, 4230));
-        await channel.send('k!lu');
-    
-        const luMsg = await waitForResponse(channel);
-        if (luMsg) 
-          await extractAndSaveData(luMsg);
-        
-        await waitForDrop(30);
       }
     }
-  }
 }
 
 client.on('ready', async () => {
-  console.log(`${client.user.username} is ready!`);
+  console.log(`${client.user.username} is ready!\n`);
 
   const channel = await client.channels.fetch(CHANNEL_ID);
   if (channel) {
