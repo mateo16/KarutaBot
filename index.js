@@ -4,7 +4,6 @@ const sharp = require('sharp');
 const axios = require('axios');
 const fs = require('fs');
 const client = new Client();
-const MINS30 = 30 * 60 * 1000;
 
 // --- CONGIGURATION --- 
 const config = require('./config.json');
@@ -16,6 +15,14 @@ const wordList = [
   'avatar', 'genshin impact', 'fate','fullmetal','jojo'
 ];
 // -----------------
+
+if (!fs.existsSync('CARDS.txt')) {
+  fs.writeFileSync('CARDS.txt', '', 'utf8');
+}
+
+if (!fs.existsSync('BESTS.txt')) {
+  fs.writeFileSync('BESTS.txt', '', 'utf8');
+}
 
 function extractAndSaveData(msg) {
   const description = msg.embeds[0].description;
