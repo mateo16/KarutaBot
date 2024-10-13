@@ -6,23 +6,17 @@ const fs = require('fs');
 const client = new Client();
 
 // --- CONGIGURATION --- 
-const config = require('./config.json');
-const { CHANNEL_ID, USER_TOKEN } = config;
+const args = process.argv.slice(2);
+
+const CHANNEL_ID = args[0]; 
+const USER_TOKEN = args[1];
 
 const wordList = [
   'jujutsu', 'one piece', 'demon slayer', 'naruto', 'bleach', 'dragon ball',
-  'hunter', 'my hero academia', 'classroom of the elite', 'the prince of tennis',
-  'avatar', 'genshin impact', 'fate','fullmetal','jojo'
+  'hunter x hunter', 'my hero academia', 'solo leveling','classroom of the elite', 'the prince of tennis',
+  'avatar', 'genshin impact', 'fate','fullmetal','pokémon','pokemon','jojo'
 ];
 // -----------------
-
-if (!fs.existsSync('CARDS.txt')) {
-  fs.writeFileSync('CARDS.txt', '', 'utf8');
-}
-
-if (!fs.existsSync('BESTS.txt')) {
-  fs.writeFileSync('BESTS.txt', '', 'utf8');
-}
 
 function extractAndSaveData(msg) {
   const description = msg.embeds[0].description;
