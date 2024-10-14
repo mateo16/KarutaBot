@@ -81,14 +81,17 @@ function shouldSendMessage(per) {
 function checkForCharacter(char1, char2, char3) {
   for (let i = 0; i < top500Characters.length; i++) {
     const topCharacter = top500Characters[i];
+    const characterName = topCharacter.character.toLowerCase();
 
-    if (char1.toLowerCase().includes(topCharacter.character.toLowerCase())) {
+    const regex = new RegExp(`\\b${characterName}\\b`, 'i');
+
+    if (regex.test(char1.toLowerCase())) {
       return 1;
     }
-    if (char2.toLowerCase().includes(topCharacter.character.toLowerCase())) {
+    if (regex.test(char2.toLowerCase())) {
       return 2;
     }
-    if (char3.toLowerCase().includes(topCharacter.character.toLowerCase())) {
+    if (regex.test(char3.toLowerCase())) {
       return 3;
     }
   }
