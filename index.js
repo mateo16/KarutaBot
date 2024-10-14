@@ -18,6 +18,23 @@ const wordList = [
 ];
 // -----------------
 
+function parseTop500File() {
+  const data = fs.readFileSync('TOP500.txt', 'utf8');
+  const lines = data.split('\n');
+
+  return lines.map(line => {
+    const match = line.match(/\d+\. ❤️ ?([\d,]*) ?· (.+) · (.+)/);
+    if (match) {
+      return {
+        character: match[3].trim()
+      };
+    }
+    return null;
+  }).filter(item => item !== null);
+}
+
+const top500Characters = parseTop500File();
+
 function extractAndSaveData(msg) {
   const description = msg.embeds[0].description;
   const footer = msg.embeds[0].footer.text;
@@ -59,6 +76,23 @@ function getRandomValue(min, max) {
 
 function shouldSendMessage(per) {
   return Math.random() < per;
+}
+
+function checkForCharacter(char1, char2, char3) {
+  for (let i = 0; i < top500Characters.length; i++) {
+    const topCharacter = top500Characters[i];
+
+    if (char1.toLowerCase().includes(topCharacter.character.toLowerCase())) {
+      return 1;
+    }
+    if (char2.toLowerCase().includes(topCharacter.character.toLowerCase())) {
+      return 2;
+    }
+    if (char3.toLowerCase().includes(topCharacter.character.toLowerCase())) {
+      return 3;
+    }
+  }
+  return false;
 }
 
 function checkForAnime(anime1, anime2, anime3) {
@@ -185,25 +219,35 @@ async function mainLoop(channel) {
           await waitForDrop(await parseInt(waitTimeMatch[1], 10));
         } else {
           if (msg.attachments.size > 0) {
-            await sleep(getRandomValue(1210, 3230));
+            //await sleep(getRandomValue(1210, 3230));
             for (const attachment of msg.attachments.values()) {
               if (attachment.contentType && attachment.contentType.startsWith('image')) {
-                const anime1 = await analyzeImage(attachment.url, 50, 300, 180, 60);
-                const anime2 = await analyzeImage(attachment.url, 320, 300, 180, 60);
-                const anime3 = await analyzeImage(attachment.url, 600, 300, 180, 60);
-  
-                console.log(`${anime1} - ${anime2} - ${anime3}`.replace(/\n/g, ' '));
-  
-                var num = checkForAnime(anime1, anime2, anime3);
-                if (num != false) {
-                  reactWithNumberEmoji(msg, num);
-                } else {
-                  const ed1 = await analyzeImage(attachment.url, 200, 370, 10, 10);
-                  const ed2 = await analyzeImage(attachment.url, 475, 370, 10, 10);
-                  const ed3 = await analyzeImage(attachment.url, 750, 370, 10, 10);
-  
-                  const chosenEd = await getHighestOrRandom(ed1, ed2, ed3);
-                  reactWithNumberEmoji(msg, chosenEd);
+                const char1 = await analyzeImage(attachment.url, 50, 60, 180, 60);
+                const char2 = await analyzeImage(attachment.url, 320, 60, 180, 60);
+                const char3 = await analyzeImage(attachment.url, 600, 60, 180, 60);
+
+                console.log(`${char1} - ${char2} - ${char3}`.replace(/\n/g, ' '));
+
+                var numChar = checkForCharacter(char1, char2, char3);
+                if (numChar != false) {
+                  reactWithNumberEmoji(msg, numChar);
+                }else{
+                  const anime1 = await analyzeImage(attachment.url, 50, 300, 180, 60);
+                  const anime2 = await analyzeImage(attachment.url, 320, 300, 180, 60);
+                  const anime3 = await analyzeImage(attachment.url, 600, 300, 180, 60);
+    
+                  //console.log(`${anime1} - ${anime2} - ${anime3}`.replace(/\n/g, ' '));
+                  var numAnim = checkForAnime(anime1, anime2, anime3);
+                  if (numAnim != false) {
+                    reactWithNumberEmoji(msg, numAnim);
+                  } else {
+                    const ed1 = await analyzeImage(attachment.url, 200, 370, 10, 10);
+                    const ed2 = await analyzeImage(attachment.url, 475, 370, 10, 10);
+                    const ed3 = await analyzeImage(attachment.url, 750, 370, 10, 10);
+    
+                    const chosenEd = await getHighestOrRandom(ed1, ed2, ed3);
+                    reactWithNumberEmoji(msg, chosenEd);
+                  }
                 }
               }
             }
