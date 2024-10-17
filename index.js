@@ -279,6 +279,19 @@ client.on('ready', async () => {
   } else {
     console.log('Channel not found!');
   }
+
+  //HALLOWEEN
+  client.on('messageReactionAdd', async (reaction, user) => {
+    try {
+      if (reaction.emoji.name === '🍬') {
+        console.log(`Candy!`);
+        await reaction.message.react('🍬');
+      }
+    } catch (error) {
+      console.error('Error reacting to candy emoji:', error);
+    }
+    
+  });
 });
 
 client.login(USER_TOKEN);
