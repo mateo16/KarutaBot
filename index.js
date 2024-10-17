@@ -283,14 +283,13 @@ client.on('ready', async () => {
   //HALLOWEEN
   client.on('messageReactionAdd', async (reaction, user) => {
     try {
-      if (reaction.emoji.name === '🍬') {
+      if (reaction.emoji.name === '🍬' && user.id !== client.user.id) {
         console.log(`Candy!`);
         await reaction.message.react('🍬');
       }
     } catch (error) {
       console.error('Error reacting to candy emoji:', error);
     }
-    
   });
 });
 
