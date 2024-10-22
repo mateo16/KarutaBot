@@ -14,7 +14,7 @@ const USER_TOKEN = args[1];
 const wordList = [
   'jujutsu', 'one piece', 'demon slayer', 'naruto', 'bleach', 'dragon ball',
   'hunter x hunter', 'my hero academia', 'solo leveling','classroom of the elite', 'the prince of tennis',
-  'avatar', 'genshin impact', 'fate','fullmetal','pokémon','pokemon','jojo'
+  'avatar', 'genshin impact', 'fate','fullmetal','pokémon','pokemon','jojo','death note'
 ];
 // -----------------
 
