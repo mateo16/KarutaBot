@@ -272,7 +272,7 @@ client.on('ready', async () => {
 client.on('messageReactionAdd', async (reaction, user) => {
   console.log(`User ID: ${user.id}`);
   try {
-    const specificUserId = 'Karuta'; 
+    const specificUserId = '646937666251915264'; 
 
     if (user.id === specificUserId) {
       if (reaction.emoji.name === '🍬') {
@@ -289,7 +289,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
     console.error('Error reacting to emoji:', error);
   }
 });
-
 
 });
 
