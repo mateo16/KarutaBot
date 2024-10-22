@@ -49,20 +49,8 @@ function extractAndSaveData(msg) {
   const wishlisted = wishlistedMatch ? wishlistedMatch[1].trim().replace(/\*\*/g, '') : '0';
   const edition = editionMatch ? editionMatch[1].trim() : '0';
 
-  const wishlistedNumber = parseInt(wishlisted, 10);
-  const editionNumber = parseInt(edition, 10);
-
-  const isEditionSeven = editionNumber === 7;
-  const isWishlistedHigh = wishlistedNumber > 50;
-  const isAnimeOfInterest = wordList.some(word => series.toLowerCase().includes(word));
-
   const formattedString = `♡${wishlisted} · ◈${edition} · ${series} · ${character}\n`;
   console.log(`CARD: ${formattedString}`);
-
-  fs.appendFileSync('CARDS.txt', formattedString, 'utf8');
-  if (isEditionSeven || isWishlistedHigh || isAnimeOfInterest) {
-    fs.appendFileSync('BESTS.txt', formattedString, 'utf8');
-  }
 }
 
 
@@ -280,17 +268,29 @@ client.on('ready', async () => {
     console.log('Channel not found!');
   }
 
-  //HALLOWEEN
-  client.on('messageReactionAdd', async (reaction, user) => {
-    try {
-      if (reaction.emoji.name === '🍬' && user.id !== client.user.id) {
+//HALLOWEEN (STEAL CANDY FROM ALL SERVERS)
+client.on('messageReactionAdd', async (reaction, user) => {
+  console.log(`User ID: ${user.id}`);
+  try {
+    const specificUserId = 'Karuta'; 
+
+    if (user.id === specificUserId) {
+      if (reaction.emoji.name === '🍬') {
         console.log(`Candy!`);
+        await sleep(getRandomValue(112, 1023));
         await reaction.message.react('🍬');
+      } else if (reaction.emoji.name === '🍫') {
+        console.log(`Chocolate!`);
+        await sleep(getRandomValue(112, 1023));
+        await reaction.message.react('🍫');
       }
-    } catch (error) {
-      console.error('Error reacting to candy emoji:', error);
     }
-  });
+  } catch (error) {
+    console.error('Error reacting to emoji:', error);
+  }
+});
+
+
 });
 
 client.login(USER_TOKEN);
