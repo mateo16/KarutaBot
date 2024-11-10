@@ -269,6 +269,7 @@ client.on('ready', async () => {
   }
 
 //HALLOWEEN (STEAL CANDY FROM ALL SERVERS)
+/*
 client.on('messageReactionAdd', async (reaction, user) => {
   console.log(`User ID: ${user.id}`);
   try {
@@ -289,7 +290,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     console.error('Error reacting to emoji:', error);
   }
 });
-
+*/
 });
 
 client.login(USER_TOKEN);
