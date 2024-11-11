@@ -3,6 +3,7 @@ const tesseract = require('tesseract.js');
 const sharp = require('sharp');
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 
 // --- CONGIGURATION --- 
 const wordList = [
@@ -45,9 +46,13 @@ userConfigs.forEach(config => {
       const msg = await waitForResponse(channel);
   
       if (msg) {
-        const waitTimeMatch = msg.content.match(/(\d+) minutes/);
+        const waitTimeMatch = msg.content.match(/(\d+)\s*(minutes|seconds)/i);
         if (waitTimeMatch) {
-          await waitForDrop(await parseInt(waitTimeMatch[1], 10));
+          const timeValue = parseInt(waitTimeMatch[1], 10);
+          const unit = waitTimeMatch[2].toLowerCase();
+
+          const waitTime = unit === 'minutes' ? timeValue * 60 * 1000 : timeValue * 1000;
+          await waitForDrop(waitTime);
         } else {
           if (msg.attachments.size > 0) {
             //await sleep(getRandomValue(1210, 3230));
@@ -92,7 +97,7 @@ userConfigs.forEach(config => {
           if (luMsg) 
             await extractAndSaveData(luMsg);
           
-          await waitForDrop(30);
+          await waitForDrop(30 * 60 * 1000);
         }
       }
     }
@@ -225,27 +230,42 @@ userConfigs.forEach(config => {
         await msg.react(emoji);
   }
   
-  async function analyzeImage(url,l,t,w,h) {
+  async function analyzeImage(url, l, t, w, h) {
     try {
       const response = await axios.get(url, { responseType: 'arraybuffer' });
       const imageBuffer = Buffer.from(response.data, 'binary');
   
-      const imagePath = 'temp_image.webp';
-      fs.writeFileSync(imagePath, imageBuffer);
+      // Use a unique filename for each instance
+      const uniqueId = Date.now() + '-' + Math.floor(Math.random() * 1000);
+      const imagePath = path.join(__dirname, `temp_image_${uniqueId}.webp`);
+      const croppedImagePath = path.join(__dirname, `cropped_image_${uniqueId}.png`);
   
-      const croppedImagePath = 'cropped_image.png';
-      await sharp(imagePath) 
-        .extract({ left: l, top: t, width: w, height: h })
-        .toFile(croppedImagePath);
+      try {
+        fs.writeFileSync(imagePath, imageBuffer);
+      } catch (writeError) {
+        console.error(`Failed to save image to ${imagePath}:`, writeError);
+        return '';
+      }
+  
+      try {
+        await sharp(imagePath)
+          .extract({ left: l, top: t, width: w, height: h })
+          .toFile(croppedImagePath);
+      } catch (sharpError) {
+        console.error(`Failed to crop image:`, sharpError);
+        return '';
+      }
   
       const { data: { text } } = await tesseract.recognize(croppedImagePath, 'eng');
   
-      fs.unlinkSync(imagePath);
-      fs.unlinkSync(croppedImagePath);
+      // Clean up: delete both temporary files if they exist
+      if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+      if (fs.existsSync(croppedImagePath)) fs.unlinkSync(croppedImagePath);
   
       return text;
     } catch (error) {
       console.error('Error analyzing image:', error);
+      return '';
     }
   }
   
@@ -262,15 +282,16 @@ userConfigs.forEach(config => {
     return fetchedMessages ? fetchedMessages.first() : null;
   }
   
-  async function waitForDrop(timeMin) {
-    const time = timeMin * 60 * 1000;
+  async function waitForDrop(time) {
     const waitTime = await getRandomValue(time + 12123, time + 3 * 60 * 1000);
     
-    const currentTime = new Date();
-    const dropTime = new Date(currentTime.getTime() + waitTime);
-    const formattedDropTime = dropTime.toLocaleTimeString('es-AR');
+    if(time != (30 * 60 * 1000)){
+      const currentTime = new Date();
+      const dropTime = new Date(currentTime.getTime() + waitTime);
+      const formattedDropTime = dropTime.toLocaleTimeString('es-AR');
+      console.log(`Next drop at ${formattedDropTime}. You need to wait for ${Math.ceil(waitTime / (60 * 1000))} minute(s).`);
+    }
     
-    console.log(`Next drop at ${formattedDropTime}. You need to wait for ${Math.ceil(waitTime / (60 * 1000))} minute(s).`);
     await sleep(waitTime);
   }
 
